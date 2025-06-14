@@ -10,9 +10,6 @@ def get_groq_response(user_message):
 
     client = Groq(api_key=api_key)
 
-
-    # api_key = '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'
-
     # Define the conversation messages
     messages = [
         {
