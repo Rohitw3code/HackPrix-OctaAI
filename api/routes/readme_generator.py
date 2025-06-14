@@ -7,7 +7,7 @@ import base64
 readme_bp = Blueprint('readme', __name__)
 
 @readme_bp.route("/readme", methods=["GET"])
-def readme_generator():
+def readme_generator():    
     return jsonify({
         "success": True,
         "message": "Welcome to the Readme Generator API. Use the /generate endpoint to create a README.md file."
