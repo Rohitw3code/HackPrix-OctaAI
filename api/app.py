@@ -3,6 +3,10 @@ from flask_cors import CORS
 from routes.readme_generator import readme_bp
 from routes.talk_ai import repo_talk
 from routes.tree_structure import tree_bp
+from dotenv import load_dotenv
+
+# Load .env file
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, origins=["http://localhost:5173"])

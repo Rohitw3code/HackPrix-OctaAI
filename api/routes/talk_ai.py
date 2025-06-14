@@ -8,6 +8,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.vectorstores import FAISS
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.chains import RetrievalQA
+import os
 
 
 repo_talk = Blueprint('repo_talk', __name__)
@@ -20,6 +21,9 @@ current_repo_data = {
     'vectorstore': None,
     'qa_chain': None
 }
+
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 headers = {"Authorization": f"token {GITHUB_TOKEN}"} if GITHUB_TOKEN else {}
 

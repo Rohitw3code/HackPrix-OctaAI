@@ -2,7 +2,9 @@ from flask import Blueprint, request, jsonify
 from utils.llm import get_groq_response
 from utils.utils import process_repo_tree
 import base64
+import os
 
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 readme_bp = Blueprint('readme', __name__)
 

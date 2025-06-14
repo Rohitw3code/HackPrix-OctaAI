@@ -4,7 +4,7 @@ import re
 
 tree_bp = Blueprint('tree', __name__)
 
-GITHUB_TOKEN = "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"
+GITHUB_TOKEN = "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"
 
 @tree_bp.route("/tree", methods=["POST"])
 def get_repo_tree():
@@ -55,10 +55,3 @@ def get_repo_tree():
             "success": False,
             "error": f"An error occurred: {str(e)}"
         }), 500
-
-@tree_bp.route("/tree", methods=["GET"])
-def tree_info():
-    return jsonify({
-        "success": True,
-        "message": "Repository Tree Structure API. Use POST method with 'url' parameter to get tree structure."
-    })
