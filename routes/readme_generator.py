@@ -23,11 +23,8 @@ def generate_readme():
     print("token : ",token)
 
 
-    # token = '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'  # Replace with your token
-
     print("Processing the repository...")
 
-    # Process the repository to get the folder structure and file details
     repo_tree = process_repo_tree(repo_url, '', token)
 
     print("Repository Tree: ", repo_tree)
