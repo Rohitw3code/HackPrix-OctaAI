@@ -127,6 +127,7 @@ def get_file_imports(repo_url, path, token=None):
     url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
     headers = {"Authorization": f"Bearer {token}"} if token else {}
     response = requests.get(url, headers=headers)
+    print(f"Fetching imports from {url}... : ",response)  # Debugging line
     if response.status_code == 200:
         try:
             data = response.json()

@@ -26,14 +26,13 @@ def generate_readme():
 
     from os import environ
 
-    token = environ.get('GITHUB_TOEKN')
 
-    print("token : ",token)
+    print("token : ",GITHUB_TOKEN)
 
 
     print("Processing the repository...")
 
-    repo_tree = process_repo_tree(repo_url, '', token)
+    repo_tree = process_repo_tree(repo_url, '', GITHUB_TOKEN)
 
     print("Repository Tree: ", repo_tree)
     print("Generating the README...")

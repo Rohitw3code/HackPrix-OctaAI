@@ -7,6 +7,8 @@ from langchain.chat_models import ChatOpenAI
 from langchain.vectorstores import FAISS
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.chains import RetrievalQA
+# from creds import GITHUB_TOKEN, OPENAI_API_KEY
+
 
 repo_talk = Blueprint('repo_talk', __name__)
 
@@ -14,6 +16,7 @@ repo_talk = Blueprint('repo_talk', __name__)
 owner = "Rohitw3code"          # Replace with the repo owner
 repo = "HackPrix-OctaAI"       # Replace with the repo name
 branch = "main"
+
 
 headers = {"Authorization": f"token {GITHUB_TOKEN}"} if GITHUB_TOKEN else {}
 
