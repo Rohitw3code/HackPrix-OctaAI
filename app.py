@@ -9,8 +9,13 @@ CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
 # Register blueprints
 app.register_blueprint(readme_bp, url_prefix='/api')
 
-@app.route('/api', methods=['GET'])
+@app.route('/', methods=['GET'])
 def index():
+    return {"success":True,"message":"Welcome to the OcatAI API"}
+
+
+@app.route('/api', methods=['GET'])
+def api():
     return {"success":True,"message":"Welcome to the API"}
 
 if __name__ == '__main__':

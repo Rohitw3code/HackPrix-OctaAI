@@ -1,9 +1,17 @@
 from flask import Blueprint, request, jsonify
-from llm import get_groq_response
+from utils.llm import get_groq_response
+from utils.utils import process_repo_tree
+import base64
 
 
 readme_bp = Blueprint('readme', __name__)
 
+@readme_bp.route("/readme", methods=["GET"])
+def readme_generator():
+    return jsonify({
+        "success": True,
+        "message": "Welcome to the Readme Generator API. Use the /generate endpoint to create a README.md file."
+    })
 
 @readme_bp.route("/generate", methods=["POST"])
 def generate_readme():
