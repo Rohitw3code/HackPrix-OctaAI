@@ -1,34 +1,39 @@
-# HackPrix-OctaAI
+# HackPrix-GIT-AI
 
-HackPrix-OctaAI is an AI-powered tool that helps developers and non-developers understand any GitHub repository with ease. It can automatically generate high-quality README files using a repository link and allows users to chat with the repo to explore and understand the code. The tool is built using LangChain, GitHub API, and Flask.
+HackPrix-Git-AI is an AI-powered tool built entirely around the GitHub ecosystem. It helps users generate high-quality README files from any GitHub repository link and enables natural language interaction with the codebase. With a focus on enhancing code understanding and documentation, this tool is ideal for developers, students, and open-source contributors.
 
 ---
 
 ## 🚀 Features
 
-- Generate detailed and professional README files from GitHub repos  
-- Chat with a GitHub repository to understand its structure, files, and logic  
-- Uses LangChain for natural language interaction  
-- Built with Flask for easy integration and deployment  
+- 🧾 Auto-generate professional README files from GitHub repositories  
+- 💬 Chat with your GitHub codebase to understand structure, files, and logic  
+- 🤖 Built using LangChain for advanced natural language interaction  
+- ⚙️ Backend built with Flask and deployed using GitHub Actions and Azure  
+- 🧠 GitHub Copilot-assisted frontend development  
+- 🧩 100% GitHub-oriented development using GitHub API and GitHub Actions  
 
 ---
 
-## 🌐 Try it out
+## 🌐 Try it Out
 
-To generate a README for your project, visit our website:  
-👉 [Generate README at GIT-AI](https://githubs-ai.web.app) 
+To generate a README for your own project, visit our website:  
+👉 [Generate README at Git-AI](https://githubs-ai.web.app/) 
 ---
 
 ## 🛠️ Tech Stack
 
-- Python  
-- Flask  
-- LangChain  
-- GitHub API  
+- **Python** – Core backend logic  
+- **Flask** – Lightweight backend framework  
+- **LangChain** – For interacting with code via natural language  
+- **GitHub API** – To fetch repo data  
+- **GitHub Actions** – For CI/CD pipeline  
+- **Azure** – For deployment  
+- **GitHub Copilot** – Assisted in frontend development  
 
 ---
 
 ## 📌 Note
 
-This tool is perfect for hackathons, open-source projects, and teams looking to boost their documentation quality instantly.
+This project is 100% GitHub-centric—right from using the GitHub API, Copilot, and Actions to deploying on Azure through GitHub-integrated workflows. It’s a full-cycle GitHub automation and AI integration solution.
 
