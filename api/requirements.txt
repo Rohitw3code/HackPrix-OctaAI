@@ -1,0 +1,9 @@
+flask
+flask-cors
+groq
+requests
+python-dotenv
+base64
+faiss-cpu
+langchain-community
+langchain
