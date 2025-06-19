@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Github, Send, Bot, User, Loader2, MessageSquare, FileText, Sparkles, AlertCircle, Plus, X, FolderTree, Link } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { baseUrl } from './creds';
 
 interface Message {
   id: string;
@@ -67,7 +68,7 @@ const ChatPage: React.FC = () => {
     setError('');
 
     try {
-      const treeResponse = await fetch('http://127.0.0.1:5000/api/tree', {
+      const treeResponse = await fetch(`${baseUrl}/api/tree`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,7 +88,7 @@ const ChatPage: React.FC = () => {
         throw new Error(treeData.error || 'Failed to load repository tree');
       }
 
-      const setRepoResponse = await fetch('http://127.0.0.1:5000/api/set-repo', {
+      const setRepoResponse = await fetch(`${baseUrl}api/set-repo`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -155,7 +156,7 @@ const ChatPage: React.FC = () => {
     setError('');
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/query', {
+      const response = await fetch(`${baseUrl}api/query`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

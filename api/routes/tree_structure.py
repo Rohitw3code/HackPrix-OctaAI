@@ -1,10 +1,11 @@
 from flask import Blueprint, request, jsonify
 from utils.utils import process_repo_tree
 import re
+import os
 
 tree_bp = Blueprint('tree', __name__)
 
-GITHUB_TOKEN = "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"
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 @tree_bp.route("/tree", methods=["POST"])
 def get_repo_tree():

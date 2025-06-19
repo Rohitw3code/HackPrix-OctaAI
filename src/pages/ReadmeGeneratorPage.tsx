@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
+import { baseUrl } from './creds';
 
 interface ApiResponse {
   success: boolean;
@@ -38,7 +39,7 @@ const ReadmeGeneratorPage: React.FC = () => {
     setSuccess(false);
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/generate', {
+      const response = await fetch(`${baseUrl}api/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

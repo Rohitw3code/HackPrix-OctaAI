@@ -37,14 +37,14 @@ function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-950 to-black relative overflow-hidden">
-      {/* Animated Background Elements */}
+      {/* Animated Background Elements - Reduced opacity on mobile */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-10 sm:top-20 left-5 sm:left-10 w-48 sm:w-72 h-48 sm:h-72 bg-slate-800/10 rounded-full blur-3xl animate-pulse-slow"></div>
-        <div className="absolute bottom-10 sm:bottom-20 right-5 sm:right-10 w-64 sm:w-96 h-64 sm:h-96 bg-gray-800/10 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 sm:w-[600px] h-80 sm:h-[600px] bg-slate-900/5 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute top-10 sm:top-20 left-5 sm:left-10 w-48 sm:w-72 h-48 sm:h-72 bg-slate-800/5 sm:bg-slate-800/10 rounded-full blur-3xl animate-pulse-slow"></div>
+        <div className="absolute bottom-10 sm:bottom-20 right-5 sm:right-10 w-64 sm:w-96 h-64 sm:h-96 bg-gray-800/5 sm:bg-gray-800/10 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-80 sm:w-[600px] h-80 sm:h-[600px] bg-slate-900/3 sm:bg-slate-900/5 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '4s' }}></div>
       </div>
 
-      {/* Floating Code Elements - Hidden on mobile for cleaner look */}
+      {/* Floating Code Elements - Lazy-loaded on desktop */}
       <div className="absolute inset-0 pointer-events-none hidden lg:block">
         <div className="absolute top-32 right-20 opacity-15 font-mono text-xs xl:text-sm text-slate-400 animate-float-code">
           <div className="bg-black/60 p-2 xl:p-3 rounded-lg border border-slate-700/30">
@@ -64,9 +64,7 @@ function HomePage() {
       </div>
 
       {/* Navigation */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrollY > 50 ? 'bg-black/95 backdrop-blur-xl border-b border-slate-800/50' : 'bg-transparent'
-      }`}>
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrollY > 50 ? 'bg-black/95 backdrop-blur-xl border-b border-slate-800/50' : 'bg-transparent'}`}>
         <div className="container mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16 sm:h-20">
             {/* Logo */}
@@ -112,6 +110,7 @@ function HomePage() {
               <button 
                 onClick={handleGenerateReadmeClick}
                 className="hidden sm:flex items-center space-x-2 px-4 lg:px-6 py-2 lg:py-3 bg-gradient-to-r from-slate-700 to-gray-700 text-white font-semibold rounded-xl hover:from-slate-800 hover:to-gray-800 transform hover:scale-105 transition-all duration-200 shadow-lg shadow-black/50 hover:shadow-black/70 text-sm lg:text-base"
+                aria-label="Generate README"
               >
                 <Sparkles size={16} className="lg:w-5 lg:h-5" />
                 <span>Generate README</span>
@@ -120,16 +119,17 @@ function HomePage() {
               
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 text-slate-300 hover:text-white transition-colors"
+                className="lg:hidden p-2 text-slate-300 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500"
+                aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
               >
                 {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
             </div>
           </div>
 
-          {/* Mobile Navigation */}
+          {/* Mobile Navigation - Added slide-in animation */}
           {mobileMenuOpen && (
-            <div className="lg:hidden py-4 sm:py-6 border-t border-slate-800/50 bg-black/95 backdrop-blur-xl">
+            <div className="lg:hidden py-4 sm:py-6 border-t border-slate-800/50 bg-black/95 backdrop-blur-xl animate-slide-in">
               <div className="flex flex-col space-y-3 sm:space-y-4">
                 <a href="#features" className="text-slate-300 hover:text-white transition-colors flex items-center space-x-3 py-2">
                   <Zap size={16} />
@@ -150,6 +150,7 @@ function HomePage() {
                 <button 
                   onClick={handleGenerateReadmeClick}
                   className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-slate-700 to-gray-700 text-white font-semibold rounded-xl mt-4 w-full justify-center shadow-lg shadow-black/50"
+                  aria-label="Generate README"
                 >
                   <Sparkles size={18} />
                   <span>Generate README</span>
@@ -161,8 +162,8 @@ function HomePage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <main className="relative z-10 pt-24 sm:pt-32 pb-12 sm:pb-20">
+      {/* Hero Section - Reduced mobile padding */}
+      <main className="relative z-10 pt-20 sm:pt-32 pb-12 sm:pb-20">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-7xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
@@ -198,6 +199,7 @@ function HomePage() {
                   <button 
                     onClick={handleGenerateReadmeClick}
                     className="group flex items-center justify-center space-x-2 sm:space-x-3 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-slate-700 to-gray-700 text-white font-bold rounded-xl hover:from-slate-800 hover:to-gray-800 transform hover:scale-105 transition-all duration-200 shadow-lg shadow-black/50 hover:shadow-black/70"
+                    aria-label="Generate README"
                   >
                     <Sparkles size={18} className="sm:w-5 sm:h-5" />
                     <span>Generate README</span>
@@ -207,6 +209,7 @@ function HomePage() {
                   <button 
                     onClick={handleChatClick}
                     className="group flex items-center justify-center space-x-2 sm:space-x-3 px-6 sm:px-8 py-3 sm:py-4 bg-black/60 backdrop-blur-sm border border-slate-800/50 text-white font-semibold rounded-xl hover:bg-black/80 transition-all duration-200"
+                    aria-label="Try Chat Feature"
                   >
                     <Bot size={16} className="sm:w-5 sm:h-5" />
                     <span>Try Chat Feature</span>
@@ -234,8 +237,8 @@ function HomePage() {
                 </div>
               </div>
 
-              {/* Right Column - Code Preview */}
-              <div className="relative mt-8 lg:mt-0">
+              {/* Right Column - Code Preview - Constrained width on mobile */}
+              <div className="relative mt-8 lg:mt-0 max-w-[90vw] mx-auto lg:max-w-none">
                 <div className="bg-black/60 backdrop-blur-sm rounded-2xl border border-slate-800/50 overflow-hidden shadow-2xl shadow-black/50">
                   {/* Terminal Header */}
                   <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 bg-black/80 border-b border-slate-800/50">
@@ -280,7 +283,7 @@ function HomePage() {
                   </div>
                 </div>
 
-                {/* Floating Elements - Responsive sizing */}
+                {/* Floating Elements */}
                 <div className="absolute -top-2 sm:-top-4 -right-2 sm:-right-4 bg-gradient-to-r from-slate-700 to-gray-700 p-2 sm:p-3 rounded-xl shadow-lg shadow-black/50 animate-bounce-slow">
                   <FileText size={20} className="sm:w-6 sm:h-6 text-white" />
                 </div>
@@ -293,7 +296,7 @@ function HomePage() {
         </div>
       </main>
 
-      {/* Features Section */}
+      {/* Features Section - Increased touch target */}
       <section id="features" className="relative z-10 py-12 sm:py-20">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-6xl mx-auto">
@@ -312,9 +315,7 @@ function HomePage() {
             <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
               {/* README Generator */}
               <div 
-                className={`group relative p-6 sm:p-8 bg-black/40 backdrop-blur-sm border border-slate-800/50 rounded-2xl hover:border-slate-600/50 transition-all duration-300 cursor-pointer transform hover:scale-105 ${
-                  activeFeature === 'readme' ? 'ring-2 ring-slate-600/50 border-slate-600/50 bg-black/60' : ''
-                }`}
+                className={`group relative p-6 sm:p-8 bg-black/40 backdrop-blur-sm border border-slate-800/50 rounded-2xl hover:border-slate-600/50 transition-all duration-300 cursor-pointer transform hover:scale-105 touch-none ${activeFeature === 'readme' ? 'ring-2 ring-slate-600/50 border-slate-600/50 bg-black/60' : ''}`}
                 onClick={() => setActiveFeature(activeFeature === 'readme' ? null : 'readme')}
               >
                 <div className="flex items-center space-x-3 sm:space-x-4 mb-4 sm:mb-6">
@@ -337,9 +338,7 @@ function HomePage() {
 
               {/* Natural Language Chat */}
               <div 
-                className={`group relative p-6 sm:p-8 bg-black/40 backdrop-blur-sm border border-slate-800/50 rounded-2xl hover:border-gray-600/50 transition-all duration-300 cursor-pointer transform hover:scale-105 ${
-                  activeFeature === 'chat' ? 'ring-2 ring-gray-600/50 border-gray-600/50 bg-black/60' : ''
-                }`}
+                className={`group relative p-6 sm:p-8 bg-black/40 backdrop-blur-sm border border-slate-800/50 rounded-2xl hover:border-gray-600/50 transition-all duration-300 cursor-pointer transform hover:scale-105 touch-none ${activeFeature === 'chat' ? 'ring-2 ring-gray-600/50 border-gray-600/50 bg-black/60' : ''}`}
                 onClick={() => setActiveFeature(activeFeature === 'chat' ? null : 'chat')}
               >
                 <div className="flex items-center space-x-3 sm:space-x-4 mb-4 sm:mb-6">
@@ -361,7 +360,7 @@ function HomePage() {
               </div>
             </div>
 
-            {/* Feature Details */}
+            {/* Feature Details - Adjusted line spacing */}
             {activeFeature && (
               <div className="mt-8 sm:mt-12 p-6 sm:p-8 bg-black/60 backdrop-blur-sm border border-slate-800/50 rounded-2xl">
                 {activeFeature === 'readme' ? (
@@ -371,7 +370,7 @@ function HomePage() {
                       <h4 className="text-xl sm:text-2xl font-bold text-white">README Generation Features</h4>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-6 sm:gap-8">
-                      <div className="space-y-3 sm:space-y-4">
+                      <div className="space-y-4 sm:space-y-5">
                         <div className="flex items-center text-slate-200 text-sm sm:text-base">
                           <div className="w-2 h-2 bg-green-500 rounded-full mr-3 sm:mr-4 flex-shrink-0"></div>
                           <span>Automatic project structure analysis</span>
@@ -385,7 +384,7 @@ function HomePage() {
                           <span>Beautiful formatting & badges</span>
                         </div>
                       </div>
-                      <div className="space-y-3 sm:space-y-4">
+                      <div className="space-y-4 sm:space-y-5">
                         <div className="flex items-center text-slate-200 text-sm sm:text-base">
                           <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3 sm:mr-4 flex-shrink-0"></div>
                           <span>Installation & usage guides</span>
@@ -408,7 +407,7 @@ function HomePage() {
                       <h4 className="text-xl sm:text-2xl font-bold text-white">Natural Language Chat Features</h4>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-6 sm:gap-8">
-                      <div className="space-y-3 sm:space-y-4">
+                      <div className="space-y-4 sm:space-y-5">
                         <div className="flex items-center text-slate-200 text-sm sm:text-base">
                           <div className="w-2 h-2 bg-green-500 rounded-full mr-3 sm:mr-4 flex-shrink-0"></div>
                           <span>Ask "What does this project do?"</span>
@@ -422,7 +421,7 @@ function HomePage() {
                           <span>Code architecture insights</span>
                         </div>
                       </div>
-                      <div className="space-y-3 sm:space-y-4">
+                      <div className="space-y-4 sm:space-y-5">
                         <div className="flex items-center text-slate-200 text-sm sm:text-base">
                           <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3 sm:mr-4 flex-shrink-0"></div>
                           <span>Feature explanations</span>
