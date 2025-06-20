@@ -198,20 +198,20 @@ def test():
 
 @repo_talk.route('/query', methods=['POST'])
 def query_repo():
-    try:
-        data = request.get_json()
-        query = data.get('query')
-        repo_url = data.get('repo_url')
-        if not query:
-            return jsonify({"error": "Query is required"}), 400
-        if repo_url:
-            initialize_repo_context(repo_url)
-        if current_repo_data['agent'] is None:
-            return jsonify({"error": "No repository loaded."}), 400
-        result = current_repo_data['agent'].run(query)
-        return jsonify({"answer": result}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    # try:
+    data = request.get_json()
+    query = data.get('query')
+    repo_url = data.get('repo_url')
+    if not query:
+        return jsonify({"error": "Query is required"}), 400
+    if repo_url:
+        initialize_repo_context(repo_url)
+    if current_repo_data['agent'] is None:
+        return jsonify({"error": "No repository loaded."}), 400
+    result = current_repo_data['agent'].run(query)
+    return jsonify({"answer": result}), 200
+    # except Exception as e:
+    #     return jsonify({"error": str(e)}), 500
 
 @repo_talk.route('/current-repo', methods=['GET'])
 def get_current_repo():

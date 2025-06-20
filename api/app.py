@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
+CORS(app, supports_credentials=True, origins=["http://localhost:5173","https://githubs-ai.web.app"])
 
 # Register blueprints
 app.register_blueprint(readme_bp, url_prefix='/api')

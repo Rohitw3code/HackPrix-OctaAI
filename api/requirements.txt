@@ -3,7 +3,9 @@ flask-cors
 groq
 requests
 python-dotenv
-base64
+pybase64
 faiss-cpu
 langchain-community
 langchain
+openai
+tiktoken
