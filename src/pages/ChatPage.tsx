@@ -60,6 +60,7 @@ const ChatPage: React.FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 
@@ -67,17 +68,30 @@ const ChatPage: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Close drawer when clicking outside on mobile
+  // Close drawer when clicking outside
   useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isDrawerOpen && drawerRef.current && !drawerRef.current.contains(event.target as Node)) {
+        setIsDrawerOpen(false);
+      }
+    };
+
     const handleResize = () => {
       if (window.innerWidth >= 768) {
         setIsDrawerOpen(false);
       }
     };
 
+    if (isDrawerOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isDrawerOpen]);
 
   const handleAddRepository = async () => {
     if (!repoUrl.trim()) return setError('Please enter a GitHub repository URL');
@@ -188,15 +202,15 @@ const ChatPage: React.FC = () => {
   const formatTime = (date: Date) => date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <div className="h-screen bg-gradient-to-br from-gray-950 via-slate-950 to-black flex flex-col overflow-hidden">
+    <div className="h-screen bg-gradient-to-br from-gray-950 via-slate-950 to-black flex flex-col overflow-hidden relative">
       {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-10 sm:top-20 left-5 sm:left-10 w-48 sm:w-72 h-48 sm:h-72 bg-slate-800/10 rounded-full blur-3xl animate-pulse-slow"></div>
         <div className="absolute bottom-10 sm:bottom-20 right-5 sm:right-10 w-64 sm:w-96 h-64 sm:h-96 bg-gray-800/10 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      {/* Fixed Header */}
-      <div className="relative z-30 border-b border-slate-800/50 bg-black/60 backdrop-blur-sm flex-shrink-0">
+      {/* Fixed Header - Highest z-index */}
+      <div className="relative z-50 border-b border-slate-800/50 bg-black/80 backdrop-blur-md flex-shrink-0">
         <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2 sm:space-x-4">
@@ -247,9 +261,12 @@ const ChatPage: React.FC = () => {
       {/* Main Content Area */}
       <div className="flex flex-1 relative z-10 overflow-hidden">
         {/* Fixed Repository Sidebar (Desktop) / Drawer (Mobile) */}
-        <div className={`fixed inset-y-0 left-0 w-72 sm:w-80 border-r border-slate-800/50 bg-black/40 backdrop-blur-sm flex flex-col flex-shrink-0 transform transition-transform duration-300 ease-in-out md:static md:translate-x-0 ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'} z-80`}>
-          {/* Sidebar Header */}
-          <div className="sticky top-0 z-10 p-3 sm:p-4 lg:p-6 border-b border-slate-800/50 bg-black/60 backdrop-blur-sm flex items-center justify-between flex-shrink-0">
+        <div 
+          ref={drawerRef}
+          className={`fixed inset-y-0 left-0 w-72 sm:w-80 border-r border-slate-800/50 bg-black/90 backdrop-blur-md flex flex-col flex-shrink-0 transform transition-transform duration-300 ease-in-out md:static md:translate-x-0 z-40 ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        >
+          {/* Sidebar Header - Fixed */}
+          <div className="sticky top-0 z-10 p-3 sm:p-4 lg:p-6 border-b border-slate-800/50 bg-black/80 backdrop-blur-md flex items-center justify-between flex-shrink-0">
             <div className="flex items-center space-x-2">
               <FolderTree size={16} className="sm:w-5 sm:h-5 text-slate-400" />
               <h3 className="text-sm sm:text-base font-semibold text-white">Repository</h3>
@@ -520,8 +537,8 @@ const ChatPage: React.FC = () => {
             )}
           </div>
 
-          {/* Fixed Bottom Area: Error Message and Input */}
-          <div className="flex-shrink-0 flex flex-col bg-black/40 backdrop-blur-sm border-t border-slate-800/50">
+          {/* Fixed Bottom Area: Error Message and Input - High z-index */}
+          <div className="flex-shrink-0 flex flex-col bg-black/80 backdrop-blur-md border-t border-slate-800/50 relative z-30">
             {error && (
               <div className="px-3 sm:px-4 lg:px-6 py-2">
                 <div className="flex items-center space-x-2 p-2 sm:p-3 bg-red-500/10 border border-red-500/20 rounded-lg sm:rounded-xl">
@@ -561,10 +578,10 @@ const ChatPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Overlay for Drawer on Mobile */}
+      {/* Overlay for Drawer on Mobile - Lower z-index than drawer */}
       {isDrawerOpen && (
         <div
-          className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-70"
+          className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-1000"
           onClick={() => setIsDrawerOpen(false)}
         />
       )}
