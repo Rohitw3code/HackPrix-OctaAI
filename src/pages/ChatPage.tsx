@@ -1,5 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Github, Send, Bot, User, Loader2, MessageSquare, FileText, Sparkles, AlertCircle, Plus, X, FolderTree, Link } from 'lucide-react';
+import {
+  ArrowLeft,
+  Github,
+  Send,
+  Bot,
+  User,
+  Loader2,
+  MessageSquare,
+  FileText,
+  AlertCircle,
+  Plus,
+  X,
+  FolderTree,
+  Link,
+  Menu
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { baseUrl } from './creds';
 
@@ -39,30 +54,34 @@ const ChatPage: React.FC = () => {
   const [sourceDocuments, setSourceDocuments] = useState<SourceDocument[]>([]);
   const [showRepoInput, setShowRepoInput] = useState(false);
   const [repoUrl, setRepoUrl] = useState('');
-  const [currentRepo, setCurrentRepo] = useState<{owner: string, repo: string, url: string} | null>(null);
+  const [currentRepo, setCurrentRepo] = useState<{ owner: string; repo: string; url: string } | null>(null);
   const [repoTree, setRepoTree] = useState<string>('');
   const [isLoadingTree, setIsLoadingTree] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  const handleAddRepository = async () => {
-    if (!repoUrl.trim()) {
-      setError('Please enter a GitHub repository URL');
-      return;
-    }
+  // Close drawer when clicking outside on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsDrawerOpen(false);
+      }
+    };
 
-    if (!repoUrl.includes('github.com')) {
-      setError('Please enter a valid GitHub repository URL');
-      return;
-    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleAddRepository = async () => {
+    if (!repoUrl.trim()) return setError('Please enter a GitHub repository URL');
+    if (!repoUrl.includes('github.com')) return setError('Please enter a valid GitHub repository URL');
 
     setIsLoadingTree(true);
     setError('');
@@ -70,55 +89,34 @@ const ChatPage: React.FC = () => {
     try {
       const treeResponse = await fetch(`${baseUrl}/api/tree`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          url: repoUrl.trim()
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: repoUrl.trim() })
       });
-
-      if (!treeResponse.ok) {
-        throw new Error(`HTTP error! status: ${treeResponse.status}`);
-      }
-
+      if (!treeResponse.ok) throw new Error(`HTTP error! status: ${treeResponse.status}`);
       const treeData: RepoTreeResponse = await treeResponse.json();
-      
-      if (!treeData.success) {
-        throw new Error(treeData.error || 'Failed to load repository tree');
-      }
+      if (!treeData.success) throw new Error(treeData.error || 'Failed to load repository tree');
 
-      const setRepoResponse = await fetch(`${baseUrl}api/set-repo`, {
+      const setRepoResponse = await fetch(`${baseUrl}/api/set-repo`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          url: repoUrl.trim()
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: repoUrl.trim() })
       });
+      if (!setRepoResponse.ok) console.warn('Failed to initialize chat context, but tree loaded');
 
-      if (!setRepoResponse.ok) {
-        console.warn('Failed to initialize chat context, but tree structure loaded');
-      }
-
-      setCurrentRepo({
-        owner: treeData.data.owner,
-        repo: treeData.data.repo,
-        url: treeData.data.url
-      });
+      setCurrentRepo({ owner: treeData.data.owner, repo: treeData.data.repo, url: treeData.data.url });
       setRepoTree(treeData.data.tree_structure);
       setShowRepoInput(false);
       setRepoUrl('');
-      
-      const systemMessage: Message = {
-        id: Date.now().toString(),
-        type: 'bot',
-        content: `Repository "${treeData.data.owner}/${treeData.data.repo}" has been loaded successfully! You can now ask questions about this repository.`,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, systemMessage]);
-
+      setIsDrawerOpen(false);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          type: 'bot',
+          content: `Repository "${treeData.data.owner}/${treeData.data.repo}" loaded! Ask me anything about it.`,
+          timestamp: new Date()
+        }
+      ]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load repository. Please try again.');
     } finally {
@@ -130,14 +128,16 @@ const ChatPage: React.FC = () => {
     setCurrentRepo(null);
     setRepoTree('');
     setSourceDocuments([]);
-    
-    const systemMessage: Message = {
-      id: Date.now().toString(),
-      type: 'bot',
-      content: 'Repository has been removed. You can add a new repository to start chatting about it.',
-      timestamp: new Date(),
-    };
-    setMessages(prev => [...prev, systemMessage]);
+    setIsDrawerOpen(false);
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        type: 'bot',
+        content: 'Repository removed. Add a new one to continue chatting.',
+        timestamp: new Date()
+      }
+    ]);
   };
 
   const handleSendMessage = async () => {
@@ -147,50 +147,32 @@ const ChatPage: React.FC = () => {
       id: Date.now().toString(),
       type: 'user',
       content: inputValue.trim(),
-      timestamp: new Date(),
+      timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
     setError('');
 
     try {
-      const response = await fetch(`${baseUrl}api/query`, {
+      const response = await fetch(`${baseUrl}/api/query`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: userMessage.content,
-          repo_url: currentRepo?.url
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: userMessage.content, repo_url: currentRepo?.url })
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data: ApiResponse = await response.json();
-      
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'bot',
-        content: data.answer,
-        timestamp: new Date(),
-      };
-
-      setMessages(prev => [...prev, botMessage]);
+      setMessages((prev) => [...prev, { id: (Date.now() + 1).toString(), type: 'bot', content: data.answer, timestamp: new Date() }]);
       setSourceDocuments(data.source_documents || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send message. Please try again.');
-      const errorMessage: Message = {
+      setError(err instanceof Error ? err.message : 'Error processing your request.');
+      setMessages((prev) => [...prev, {
         id: (Date.now() + 1).toString(),
         type: 'bot',
-        content: 'Sorry, I encountered an error while processing your request. Please try again.',
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
+        content: 'Sorry, I encountered an error. Please try again.',
+        timestamp: new Date()
+      }]);
     } finally {
       setIsLoading(false);
     }
@@ -203,9 +185,7 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
+  const formatTime = (date: Date) => date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-950 to-black flex flex-col">
@@ -216,29 +196,48 @@ const ChatPage: React.FC = () => {
       </div>
 
       {/* Fixed Header */}
-      <div className="relative z-20 border-b border-slate-800/50 bg-black/60 backdrop-blur-sm flex-shrink-0">
-        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+      <div className="relative z-30 border-b border-slate-800/50 bg-black/60 backdrop-blur-sm flex-shrink-0">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-3 sm:py-4 lg:py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <button
                 onClick={() => navigate('/')}
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200"
+                className="p-1.5 sm:p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200"
               >
-                <ArrowLeft size={20} />
+                <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
               </button>
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-gradient-to-r from-gray-700 to-slate-800 rounded-xl shadow-lg shadow-black/50">
-                  <MessageSquare size={20} className="text-white" />
+              <button
+                onClick={() => setIsDrawerOpen(true)}
+                className="md:hidden p-1.5 sm:p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200"
+              >
+                <Menu size={18} className="sm:w-5 sm:h-5" />
+              </button>
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <div className="p-1.5 sm:p-2 bg-gradient-to-r from-gray-700 to-slate-800 rounded-lg sm:rounded-xl shadow-lg shadow-black/50">
+                  <MessageSquare size={16} className="sm:w-5 sm:h-5 text-white" />
                 </div>
-                <div>
-                  <h1 className="text-xl sm:text-2xl font-bold text-white">Repository Chat</h1>
-                  <p className="text-sm text-slate-400">Ask questions about any GitHub repository in natural language</p>
+                <div className="hidden xs:block">
+                  <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-white">Repository Chat</h1>
+                  <p className="text-xs sm:text-sm text-slate-400 hidden sm:block">Ask questions about any GitHub repository in natural language</p>
+                </div>
+                <div className="xs:hidden">
+                  <h1 className="text-base font-bold text-white">Chat</h1>
                 </div>
               </div>
             </div>
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-slate-700 to-gray-700 rounded-xl flex items-center justify-center shadow-lg shadow-black/50 cursor-pointer" onClick={() => navigate('/')}>
-                <Github size={20} className="sm:w-6 sm:h-6 text-white" />
+            <div className="flex items-center space-x-2">
+              {/* Mobile Add Repository Button - Visible when no repo is loaded */}
+              {!currentRepo && (
+                <button
+                  onClick={() => setIsDrawerOpen(true)}
+                  className="md:hidden p-1.5 sm:p-2 bg-gradient-to-r from-slate-700 to-gray-700 text-white rounded-lg transition-all duration-200 hover:from-slate-800 hover:to-gray-800"
+                  title="Add Repository"
+                >
+                  <Plus size={16} className="sm:w-4 sm:h-4" />
+                </button>
+              )}
+              <div className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 bg-gradient-to-r from-slate-700 to-gray-700 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg shadow-black/50 cursor-pointer" onClick={() => navigate('/')}>
+                <Github size={16} className="sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
               </div>
             </div>
           </div>
@@ -246,115 +245,173 @@ const ChatPage: React.FC = () => {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex flex-1 relative z-10">
-        {/* Fixed Repository Tree Sidebar */}
-        <div className="w-80 border-r border-slate-800/50 bg-black/40 backdrop-blur-sm flex flex-col flex-shrink-0">
-          <div className="p-4 sm:p-6 border-b border-slate-800/50 flex-shrink-0">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center space-x-2">
-                <FolderTree size={16} className="text-slate-400" />
-                <h3 className="text-sm font-semibold text-white">Repository</h3>
-              </div>
+      <div className="flex flex-1 relative z-10 overflow-hidden">
+        {/* Fixed Repository Sidebar (Desktop) / Drawer (Mobile) */}
+        <div className={`fixed inset-y-0 left-0 w-72 sm:w-80 border-r border-slate-800/50 bg-black/40 backdrop-blur-sm flex flex-col flex-shrink-0 transform transition-transform duration-300 ease-in-out md:static md:translate-x-0 ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'} z-80`}>
+          {/* Sidebar Header */}
+          <div className="sticky top-0 z-10 p-3 sm:p-4 lg:p-6 border-b border-slate-800/50 bg-black/60 backdrop-blur-sm flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <FolderTree size={16} className="sm:w-5 sm:h-5 text-slate-400" />
+              <h3 className="text-sm sm:text-base font-semibold text-white">Repository</h3>
+            </div>
+            <div className="flex items-center space-x-1 sm:space-x-2">
               {!showRepoInput && (
                 <button
                   onClick={() => setShowRepoInput(true)}
-                  className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200"
+                  className="p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200"
                   title="Add Repository"
                 >
-                  <Plus size={16} />
+                  <Plus size={16} className="sm:w-5 sm:h-5" />
                 </button>
               )}
+              <button
+                onClick={() => setIsDrawerOpen(false)}
+                className="md:hidden p-2 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-lg transition-all duration-200"
+              >
+                <X size={16} className="sm:w-5 sm:h-5" />
+              </button>
             </div>
-
-            {showRepoInput && (
-              <div className="space-y-3">
-                <div className="relative">
-                  <Github size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="url"
-                    value={repoUrl}
-                    onChange={(e) => setRepoUrl(e.target.value)}
-                    placeholder="https://github.com/owner/repo"
-                    className="w-full pl-9 pr-4 py-2 bg-black/60 border border-slate-700/50 rounded-lg text-white text-sm placeholder-slate-400 focus:border-slate-600 focus:ring-1 focus:ring-slate-600/20 focus:outline-none transition-all duration-200"
-                    disabled={isLoadingTree}
-                  />
-                </div>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={handleAddRepository}
-                    disabled={isLoadingTree || !repoUrl.trim()}
-                    className="flex-1 flex items-center justify-center space-x-1 px-3 py-2 bg-gradient-to-r from-slate-700 to-gray-700 text-white text-sm font-medium rounded-lg hover:from-slate-800 hover:to-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                  >
-                    {isLoadingTree ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <Plus size={14} />
-                    )}
-                    <span>Add</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowRepoInput(false);
-                      setRepoUrl('');
-                    }}
-                    className="px-3 py-2 text-slate-400 hover:text-white border border-slate-700/50 hover:border-slate-600/50 rounded-lg transition-all duration-200"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {currentRepo && (
-              <div className="bg-black/60 border border-slate-800/50 rounded-lg p-3">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <Github size={14} className="text-slate-400" />
-                    <span className="text-sm font-medium text-white truncate">
-                      {currentRepo.owner}/{currentRepo.repo}
-                    </span>
-                  </div>
-                  <button
-                    onClick={handleRemoveRepository}
-                    className="p-1 text-slate-400 hover:text-red-400 transition-colors"
-                    title="Remove Repository"
-                  >
-                    <X size={12} />
-                  </button>
-                </div>
-                <a
-                  href={currentRepo.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center space-x-1 text-xs text-slate-400 hover:text-slate-300 transition-colors"
-                >
-                  <Link size={10} />
-                  <span className="truncate">View on GitHub</span>
-                </a>
-              </div>
-            )}
           </div>
-
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-            {repoTree ? (
-              <div className="space-y-2">
-                <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">
-                  Project Structure
-                </h4>
-                <pre className="text-xs text-slate-300 font-mono leading-relaxed whitespace-pre-wrap bg-black/40 p-3 rounded-lg border border-slate-800/50 overflow-x-auto">
-                  {repoTree}
-                </pre>
-              </div>
-            ) : (
-              <div className="text-center space-y-3">
-                <div className="w-12 h-12 mx-auto bg-gradient-to-r from-slate-700 to-gray-700 rounded-xl flex items-center justify-center">
-                  <FolderTree size={24} className="text-white" />
+          
+          {/* Sidebar Content */}
+          <div className="flex-1 overflow-y-auto">
+            {/* Repository Input Section */}
+            <div className="p-3 sm:p-4 lg:p-6 border-b border-slate-800/30">
+              {showRepoInput ? (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-white mb-2">
+                      GitHub Repository URL
+                    </label>
+                    <div className="relative">
+                      <Github size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+                      <input
+                        type="url"
+                        value={repoUrl}
+                        onChange={(e) => setRepoUrl(e.target.value)}
+                        placeholder="https://github.com/owner/repo"
+                        className="w-full pl-10 pr-4 py-3 bg-black/60 border border-slate-700/50 rounded-lg text-white text-sm placeholder-slate-400 focus:border-slate-600 focus:ring-2 focus:ring-slate-600/20 focus:outline-none transition-all duration-200"
+                        disabled={isLoadingTree}
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={handleAddRepository}
+                      disabled={isLoadingTree || !repoUrl.trim()}
+                      className="flex-1 flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-slate-700 to-gray-700 text-white text-sm font-medium rounded-lg hover:from-slate-800 hover:to-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                    >
+                      {isLoadingTree ? (
+                        <>
+                          <Loader2 size={16} className="animate-spin" />
+                          <span>Loading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus size={16} />
+                          <span>Add Repository</span>
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowRepoInput(false);
+                        setRepoUrl('');
+                      }}
+                      className="px-3 py-3 text-slate-400 hover:text-white border border-slate-700/50 hover:border-slate-600/50 rounded-lg transition-all duration-200"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-sm font-semibold text-white mb-1">No Repository</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    Add a GitHub repository to see its structure and start chatting about the codebase.
-                  </p>
+              ) : (
+                <div className="space-y-4">
+                  {currentRepo ? (
+                    <div className="bg-black/60 border border-slate-800/50 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-2 min-w-0 flex-1">
+                          <Github size={16} className="text-slate-400 flex-shrink-0" />
+                          <span className="text-sm font-medium text-white truncate">
+                            {currentRepo.owner}/{currentRepo.repo}
+                          </span>
+                        </div>
+                        <button
+                          onClick={handleRemoveRepository}
+                          className="p-1.5 text-slate-400 hover:text-red-400 transition-colors flex-shrink-0"
+                          title="Remove Repository"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                      <a
+                        href={currentRepo.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center space-x-2 text-xs text-slate-400 hover:text-slate-300 transition-colors"
+                      >
+                        <Link size={12} className="flex-shrink-0" />
+                        <span className="truncate">View on GitHub</span>
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="text-center space-y-4">
+                      <div className="w-12 h-12 mx-auto bg-gradient-to-r from-slate-700 to-gray-700 rounded-xl flex items-center justify-center">
+                        <Github size={24} className="text-white" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-white mb-2">No Repository Added</h4>
+                        <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                          Add a GitHub repository to start chatting about its codebase.
+                        </p>
+                        <button
+                          onClick={() => setShowRepoInput(true)}
+                          className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-slate-700 to-gray-700 text-white text-sm font-medium rounded-lg hover:from-slate-800 hover:to-gray-800 transition-all duration-200"
+                        >
+                          <Plus size={16} />
+                          <span>Add Repository</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            {/* Project Structure Section */}
+            {repoTree && (
+              <div className="p-3 sm:p-4 lg:p-6 border-b border-slate-800/30">
+                <div className="space-y-3">
+                  <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide flex items-center space-x-2">
+                    <FolderTree size={14} />
+                    <span>Project Structure</span>
+                  </h4>
+                  <pre className="text-xs text-slate-300 font-mono leading-relaxed whitespace-pre-wrap bg-black/40 p-3 rounded-lg border border-slate-800/50 overflow-x-auto max-h-64">
+                    {repoTree}
+                  </pre>
+                </div>
+              </div>
+            )}
+            
+            {/* Source Documents Section */}
+            {sourceDocuments.length > 0 && (
+              <div className="p-3 sm:p-4 lg:p-6">
+                <div className="space-y-3">
+                  <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide flex items-center space-x-2">
+                    <FileText size={14} />
+                    <span>Source Documents</span>
+                  </h4>
+                  <div className="space-y-2">
+                    {sourceDocuments.map((doc, index) => (
+                      <div key={index} className="p-3 bg-black/60 border border-slate-800/50 rounded-lg">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <FileText size={14} className="text-slate-500 flex-shrink-0" />
+                          <span className="text-sm font-medium text-white truncate">{doc.file_name}</span>
+                        </div>
+                        <p className="text-xs text-slate-400 font-mono truncate">{doc.path}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -362,24 +419,33 @@ const ChatPage: React.FC = () => {
         </div>
 
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           {/* Scrollable Messages */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6">
             {messages.length === 0 ? (
               <div className="h-full flex items-center justify-center">
-                <div className="text-center space-y-6 max-w-md">
-                  <div className="w-16 h-16 mx-auto bg-gradient-to-r from-gray-700 to-slate-800 rounded-2xl flex items-center justify-center shadow-lg shadow-black/50">
-                    <Bot size={32} className="text-white" />
+                <div className="text-center space-y-4 sm:space-y-6 max-w-sm sm:max-w-md px-4">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto bg-gradient-to-r from-gray-700 to-slate-800 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-lg shadow-black/50">
+                    <Bot size={24} className="sm:w-8 sm:h-8 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-white mb-2">Start a Conversation</h3>
-                    <p className="text-slate-400 leading-relaxed">
+                    <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">Start a Conversation</h3>
+                    <p className="text-slate-400 leading-relaxed text-sm">
                       {currentRepo 
                         ? `Ask me anything about the ${currentRepo.owner}/${currentRepo.repo} repository! I can help you understand code structure, explain functionality, or answer questions about the project.`
                         : 'Add a GitHub repository from the sidebar to start chatting about its codebase. I can help you understand code structure, explain functionality, or answer questions about any project.'
                       }
                     </p>
                   </div>
+                  {!currentRepo && (
+                    <button
+                      onClick={() => setIsDrawerOpen(true)}
+                      className="md:hidden flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-slate-700 to-gray-700 text-white font-semibold rounded-xl hover:from-slate-800 hover:to-gray-800 transition-all duration-200"
+                    >
+                      <Plus size={18} />
+                      <span>Add Repository</span>
+                    </button>
+                  )}
                   <div className="space-y-2">
                     <p className="text-sm text-slate-500">Try asking:</p>
                     <div className="space-y-1">
@@ -397,32 +463,31 @@ const ChatPage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="space-y-4 sm:space-y-6">
+              <div className="space-y-3 sm:space-y-4 lg:space-y-6">
                 {messages.map((message) => (
                   <div
                     key={message.id}
                     className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div className={`flex space-x-3 max-w-3xl ${message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                      <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-black/50 ${
+                    <div className={`flex space-x-2 sm:space-x-3 max-w-[90%] sm:max-w-[85%] lg:max-w-3xl ${message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                      <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-black/50 ${
                         message.type === 'user' 
                           ? 'bg-gradient-to-r from-slate-700 to-gray-700' 
                           : 'bg-gradient-to-r from-gray-700 to-slate-800'
                       }`}>
                         {message.type === 'user' ? (
-                          <User size={16} className="text-white" />
+                          <User size={14} className="sm:w-4 sm:h-4 text-white" />
                         ) : (
-                          <Bot size={16} className="text-white" />
+                          <Bot size={14} className="sm:w-4 sm:h-4 text-white" />
                         )}
                       </div>
-                      
-                      <div className={`flex flex-col space-y-1 ${message.type === 'user' ? 'items-end' : 'items-start'}`}>
-                        <div className={`px-4 py-3 rounded-2xl max-w-full ${
+                      <div className={`flex flex-col space-y-1 min-w-0 flex-1 ${message.type === 'user' ? 'items-end' : 'items-start'}`}>
+                        <div className={`px-3 sm:px-4 py-2 sm:py-3 rounded-xl sm:rounded-2xl max-w-full break-words ${
                           message.type === 'user'
                             ? 'bg-gradient-to-r from-slate-700 to-gray-700 text-white'
                             : 'bg-black/60 backdrop-blur-sm border border-slate-800/50 text-slate-200'
                         }`}>
-                          <p className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
+                          <p className="text-sm leading-relaxed whitespace-pre-wrap">
                             {message.content}
                           </p>
                         </div>
@@ -436,13 +501,13 @@ const ChatPage: React.FC = () => {
                 
                 {isLoading && (
                   <div className="flex justify-start">
-                    <div className="flex space-x-3 max-w-3xl">
-                      <div className="w-8 h-8 bg-gradient-to-r from-gray-700 to-slate-800 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-black/50">
-                        <Bot size={16} className="text-white" />
+                    <div className="flex space-x-2 sm:space-x-3 max-w-[90%] sm:max-w-[85%] lg:max-w-3xl">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-gray-700 to-slate-800 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-black/50">
+                        <Bot size={14} className="sm:w-4 sm:h-4 text-white" />
                       </div>
-                      <div className="bg-black/60 backdrop-blur-sm border border-slate-800/50 px-4 py-3 rounded-2xl">
+                      <div className="bg-black/60 backdrop-blur-sm border border-slate-800/50 px-3 sm:px-4 py-2 sm:py-3 rounded-xl sm:rounded-2xl">
                         <div className="flex items-center space-x-2">
-                          <Loader2 size={16} className="animate-spin text-slate-400" />
+                          <Loader2 size={14} className="sm:w-4 sm:h-4 animate-spin text-slate-400" />
                           <span className="text-slate-400 text-sm">Thinking...</span>
                         </div>
                       </div>
@@ -458,67 +523,52 @@ const ChatPage: React.FC = () => {
           {/* Fixed Bottom Area: Error Message and Input */}
           <div className="flex-shrink-0 flex flex-col bg-black/40 backdrop-blur-sm border-t border-slate-800/50">
             {error && (
-              <div className="px-4 sm:px-6 py-2">
-                <div className="flex items-center space-x-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
-                  <AlertCircle size={16} className="text-red-400 flex-shrink-0" />
-                    <span className="text-red-400 text-sm">{error}</span>
-                  </div>
+              <div className="px-3 sm:px-4 lg:px-6 py-2">
+                <div className="flex items-center space-x-2 p-2 sm:p-3 bg-red-500/10 border border-red-500/20 rounded-lg sm:rounded-xl">
+                  <AlertCircle size={14} className="sm:w-4 sm:h-4 text-red-400 flex-shrink-0" />
+                  <span className="text-red-400 text-sm">{error}</span>
                 </div>
-              )}
-              <div className="p-4 sm:p-6">
-                <div className="flex space-x-3 sm:space-x-4">
-                  <div className="flex-1 relative">
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder={currentRepo ? `Ask about ${currentRepo.owner}/${currentRepo.repo}...` : "Add a repository to start chatting..."}
-                      className="w-full px-4 py-3 pr-12 bg-black/60 border border-slate-700/50 rounded-xl text-white placeholder-slate-400 focus:border-slate-600 focus:ring-2 focus:ring-slate-600/20 focus:outline-none transition-all duration-200"
-                      disabled={isLoading || !currentRepo}
-                    />
-                  </div>
-                  <button
-                    onClick={handleSendMessage}
-                    disabled={!inputValue.trim() || isLoading || !currentRepo}
-                    className="px-4 py-3 bg-gradient-to-r from-gray-700 to-slate-800 text-white rounded-xl hover:from-gray-800 hover:to-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200 shadow-lg shadow-black/50 flex items-center justify-center"
-                  >
-                    {isLoading ? (
-                      <Loader2 size={18} className="animate-spin" />
-                    ) : (
-                      <Send size={18} />
-                    )}
-                  </button>
+              </div>
+            )}
+            <div className="p-3 sm:p-4 lg:p-6">
+              <div className="flex space-x-2 sm:space-x-3 lg:space-x-4">
+                <div className="flex-1 relative min-w-0">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder={currentRepo ? `Ask about ${currentRepo.owner}/${currentRepo.repo}...` : "Add a repository to start chatting..."}
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 pr-10 sm:pr-12 bg-black/60 border border-slate-700/50 rounded-lg sm:rounded-xl text-white placeholder-slate-400 focus:border-slate-600 focus:ring-2 focus:ring-slate-600/20 focus:outline-none transition-all duration-200 text-sm sm:text-base"
+                    disabled={isLoading || !currentRepo}
+                  />
                 </div>
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!inputValue.trim() || isLoading || !currentRepo}
+                  className="px-3 sm:px-4 py-2 sm:py-3 bg-gradient-to-r from-gray-700 to-slate-800 text-white rounded-lg sm:rounded-xl hover:from-gray-800 hover:to-slate-900 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-200 shadow-lg shadow-black/50 flex items-center justify-center flex-shrink-0"
+                >
+                  {isLoading ? (
+                    <Loader2 size={16} className="sm:w-5 sm:h-5 animate-spin" />
+                  ) : (
+                    <Send size={16} className="sm:w-5 sm:h-5" />
+                  )}
+                </button>
               </div>
             </div>
           </div>
-
-          {/* Fixed Source Documents Panel */}
-          {sourceDocuments.length > 0 && (
-            <div className="w-80 border-l border-slate-800/50 bg-black/40 backdrop-blur-sm flex flex-col flex-shrink-0">
-              <div className="p-4 sm:p-6 border-b border-slate-800/50 flex-shrink-0">
-                <div className="flex items-center space-x-2">
-                  <FileText size={16} className="text-slate-400" />
-                  <h3 className="text-sm font-semibold text-white">Source Documents</h3>
-                </div>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
-                {sourceDocuments.map((doc, index) => (
-                  <div key={index} className="p-3 bg-black/60 border border-slate-800/50 rounded-lg">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <FileText size={14} className="text-slate-500 flex-shrink-0" />
-                      <span className="text-sm font-medium text-white truncate">{doc.file_name}</span>
-                    </div>
-                    <p className="text-xs text-slate-400 font-mono truncate">{doc.path}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       </div>
+
+      {/* Overlay for Drawer on Mobile */}
+      {isDrawerOpen && (
+        <div
+          className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-70"
+          onClick={() => setIsDrawerOpen(false)}
+        />
+      )}
+    </div>
   );
 };
 
