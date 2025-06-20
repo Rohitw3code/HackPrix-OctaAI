@@ -188,7 +188,7 @@ const ChatPage: React.FC = () => {
   const formatTime = (date: Date) => date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-950 to-black flex flex-col">
+    <div className="h-screen bg-gradient-to-br from-gray-950 via-slate-950 to-black flex flex-col overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-10 sm:top-20 left-5 sm:left-10 w-48 sm:w-72 h-48 sm:h-72 bg-slate-800/10 rounded-full blur-3xl animate-pulse-slow"></div>
@@ -249,7 +249,7 @@ const ChatPage: React.FC = () => {
         {/* Fixed Repository Sidebar (Desktop) / Drawer (Mobile) */}
         <div className={`fixed inset-y-0 left-0 w-72 sm:w-80 border-r border-slate-800/50 bg-black/40 backdrop-blur-sm flex flex-col flex-shrink-0 transform transition-transform duration-300 ease-in-out md:static md:translate-x-0 ${isDrawerOpen ? 'translate-x-0' : '-translate-x-full'} z-80`}>
           {/* Sidebar Header */}
-          <div className="sticky top-0 z-10 p-3 sm:p-4 lg:p-6 border-b border-slate-800/50 bg-black/60 backdrop-blur-sm flex items-center justify-between">
+          <div className="sticky top-0 z-10 p-3 sm:p-4 lg:p-6 border-b border-slate-800/50 bg-black/60 backdrop-blur-sm flex items-center justify-between flex-shrink-0">
             <div className="flex items-center space-x-2">
               <FolderTree size={16} className="sm:w-5 sm:h-5 text-slate-400" />
               <h3 className="text-sm sm:text-base font-semibold text-white">Repository</h3>
@@ -273,7 +273,7 @@ const ChatPage: React.FC = () => {
             </div>
           </div>
           
-          {/* Sidebar Content */}
+          {/* Sidebar Content - Scrollable */}
           <div className="flex-1 overflow-y-auto">
             {/* Repository Input Section */}
             <div className="p-3 sm:p-4 lg:p-6 border-b border-slate-800/30">
@@ -419,7 +419,7 @@ const ChatPage: React.FC = () => {
         </div>
 
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 h-full">
           {/* Scrollable Messages */}
           <div className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6">
             {messages.length === 0 ? (
